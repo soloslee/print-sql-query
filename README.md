@@ -10,13 +10,13 @@ Install using composer:
 composer require soloslee/print-sql-query
 ```
 
-Laravel (optional)
+Laravel
 ------------------
 
 Add the middleware in `app/Http/Kernel.php`:
 
 ```php
-'Soloslee\PrintSqlQuery\PrintSqlQuery::class',
+\Soloslee\PrintSqlQuery\PrintSqlQuery::class,
 ```
 
 ## License
