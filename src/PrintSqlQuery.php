@@ -3,14 +3,29 @@
 namespace Soloslee\PrintSqlQuery;
 
 use DB;
+use Cache;
+use Config;
 use Closure;
 use Carbon\Carbon;
 
 class PrintSqlQuery
 {
+    const MINUTES_CACHE = 10;
+
+    const CACHE_KEY = 'print_sql_query';
+
     public function handle($request, Closure $next)
     {
-        DB::enableQueryLog();
+        $log = Cache::get(self::CACHE_KEY);
+
+        if ($log === NULL) {
+            $log = env(self::CACHE_KEY);
+            Cache::put(self::CACHE_KEY, $log, self::MINUTES_CACHE);
+        }
+
+        if ($log) {
+            DB::enableQueryLog();
+        }
 
         return $next($request);
     }
@@ -32,6 +47,10 @@ class PrintSqlQuery
 
     public function terminate($request, $response)
     {
+        if (! Cache::get(self::CACHE_KEY)) {
+            return;
+        }
+
         $queries = DB::getQueryLog();
         error_log('Queries for route: ' . $request->path());
 
