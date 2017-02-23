@@ -10,17 +10,17 @@ use Carbon\Carbon;
 
 class PrintSqlQuery
 {
-    const MINUTES_CACHE = 10;
+    private $cacheMinutes = 10;
 
-    const CACHE_KEY = 'print_sql_query';
+    private $cacheKey = 'PRINT_SQL_QUERY';
 
     public function handle($request, Closure $next)
     {
-        $log = Cache::get(self::CACHE_KEY);
+        $log = Cache::get($this->cacheKey);
 
         if ($log === NULL) {
-            $log = env(self::CACHE_KEY);
-            Cache::put(self::CACHE_KEY, $log, self::MINUTES_CACHE);
+            $log = env($this->cacheKey);
+            Cache::put($this->cacheKey, $log, $this->cacheMinutes);
         }
 
         if ($log) {
@@ -47,7 +47,7 @@ class PrintSqlQuery
 
     public function terminate($request, $response)
     {
-        if (! Cache::get(self::CACHE_KEY)) {
+        if (! Cache::get($this->cacheKey)) {
             return;
         }
 
