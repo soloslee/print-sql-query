@@ -4,9 +4,7 @@ namespace Soloslee\PrintSqlQuery;
 
 use DB;
 use Cache;
-use Config;
 use Closure;
-use Carbon\Carbon;
 
 class PrintSqlQuery
 {
@@ -30,19 +28,13 @@ class PrintSqlQuery
         return $next($request);
     }
 
-    private function queryValueToString($vlaue)
+    private function toStr($value)
     {
-        if ($vlaue instanceof Carbon) {
-            $vlaue = (string) $vlaue;
+        if (is_string($value)) {
+            return "'{$value}'";
         }
 
-        if (is_string($vlaue)) {
-            return "'{$vlaue}'";
-        } elseif (is_bool($vlaue)) {
-            return (string) (int) $vlaue;
-        } else {
-            return (string) $vlaue;
-        }
+        return (string)$value;
     }
 
     public function terminate($request, $response)
@@ -51,17 +43,14 @@ class PrintSqlQuery
             return;
         }
 
-        $queries = DB::getQueryLog();
         error_log('Queries for route: ' . $request->path());
 
-        foreach ($queries as $query) {
-            $sql = $query['query'];
-
-            foreach ($query['bindings'] as $binding) {
-                $sql = preg_replace('/\?/', $this->queryValueToString($binding), $sql, 1);
+        foreach (DB::getQueryLog() as $q) {
+            foreach ($q['bindings'] as $binding) {
+                $sql = preg_replace('/\?/', $this->toStr($binding), $q['query'], 1);
             }
 
-            error_log($sql . ' [' . $query['time'] . 'ms]');
+            error_log($sql . ' [' . $q['time'] . 'ms]');
         }
     }
 }
